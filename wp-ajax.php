@@ -63,7 +63,12 @@ function my_shortcode(){
                 data: {
                     action: "my_ajax_action"
                 },
+                beforeSend: function (){
+                    $("#info").empty();
+                    $("#info").append("Loading ...");
+                },
                 success: function (html){
+                    $("#info").empty();
                     $("#info").append(html);
                 }
             });
