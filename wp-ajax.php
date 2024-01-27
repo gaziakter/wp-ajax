@@ -21,8 +21,25 @@
 
 //Ajax function
 function my_ajax_function(){
-    echo "test";
+    
+    $query = new WP_Query( array(
+        'post_per_page'=> 10,
+        'post_type'=> 'product'
+    ));
 
+    $html = '<ul>';
+
+    if ( $query->have_posts() ) : while ( $query->have_posts() ) : $query->the_post();
+    
+    $html .= '<li>'.get_the_title().'</li>';
+   
+    endwhile;
+    endif;
+    wp_reset_query( ) ;
+
+    $html.='<ul>';
+
+    echo $html;
     die();
 }
 add_action( 'wp_ajax_my_ajax_action', 'my_ajax_function');
@@ -33,6 +50,8 @@ add_action( 'wp_ajax_nopriv_my_ajax_action', 'my_ajax_function');
 function my_shortcode(){
     $html = '
     <button class="my-ajax-trigger">Test</button>
+    <div id="info"></div>
+    
     <script>
     ; (function ($) {
         $(document).ready(function () {
@@ -44,8 +63,8 @@ function my_shortcode(){
                 data: {
                     action: "my_ajax_action"
                 },
-                success: function (){
-                    alert("Ajax Working");
+                success: function (html){
+                    $("#info").append(html);
                 }
             });
         });
