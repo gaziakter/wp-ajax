@@ -21,23 +21,28 @@
 
 //Ajax function
 function my_ajax_function(){
+
+    if(wp_verify_nonce( $_POST['nonce_get'], 'my_nonce' )){
+        $query = new WP_Query( array(
+            'post_per_page'=> 10,
+            'post_type'=> 'product'
+        ));
     
-    $query = new WP_Query( array(
-        'post_per_page'=> 10,
-        'post_type'=> 'product'
-    ));
-
-    $html = '<ul>';
-
-    if ( $query->have_posts() ) : while ( $query->have_posts() ) : $query->the_post();
+        $html = '<ul>';
     
-    $html .= '<li>'.get_the_title().'</li>';
-   
-    endwhile;
-    endif;
-    wp_reset_query( ) ;
-
-    $html.='<ul>';
+        if ( $query->have_posts() ) : while ( $query->have_posts() ) : $query->the_post();
+        
+        $html .= '<li>'.get_the_title().'</li>';
+       
+        endwhile;
+        endif;
+        wp_reset_query( ) ;
+    
+        $html.='<ul>';
+    } else{
+        $html = '<div class="alert">There ie someting Error!</div>';
+    }
+    
 
     echo $html;
     die();
@@ -49,7 +54,7 @@ add_action( 'wp_ajax_nopriv_my_ajax_action', 'my_ajax_function');
 //Create Shortcode
 function my_shortcode(){
     $html = '
-    <button class="my-ajax-trigger">Test</button>
+    <button data-nonce="'.wp_create_nonce( 'my_nonce' ).'" class="my-ajax-trigger">Test</button>
     <div id="info"></div>
     
     <script>
@@ -57,11 +62,14 @@ function my_shortcode(){
         $(document).ready(function () {
 
         $(".my-ajax-trigger").on("click", function(){
+
+            var nonece = $(this).attr("data-nonce");
             $.ajax({
                 url: "'.admin_url( 'admin-ajax.php' ).'",
                 type: "POST",
                 data: {
-                    action: "my_ajax_action"
+                    action: "my_ajax_action",
+                    nonce_get: nonece
                 },
                 beforeSend: function (){
                     $("#info").empty();
